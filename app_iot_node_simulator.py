@@ -15,6 +15,10 @@ import psutil as psu
 import aiohttp.web as aioweb
 import aiohttp as aioh
 from typing import Dict, List
+from random_word import RandomWords
+r = RandomWords()
+
+# Return a single random word
 
 
 class IoTNode(object):
@@ -43,12 +47,14 @@ class IoTNode(object):
             "node": self.node_id,
             "time": time.time(),
             "sensor_value": random.uniform(12., 30.),
-            "sensor_type": "temperature[degC]"
+            "sensor_type": r.get_random_word(),
+            #"sensor_type": "temperature[degC]"
         }
 
     async def handle_wss_data_stream(self, request: aioweb.Request) -> aioweb.WebSocketResponse:
         """
-        Handler that infinitely runs until the websocket is closed from the client.
+        Handler that infinitely runs until
+          the websocket is closed from the client.
             Will continue sending data at the rate determined by self.period_pub_s.
         """
         ws_resp = aioweb.WebSocketResponse()
@@ -71,7 +77,7 @@ class IoTNode(object):
                     continue
             else:
                 await asyncio.sleep(self.period_refresh_s)
-
+                
     def create_aiohttp_app(self) -> None:
         self.app = aioweb.Application()
         self.app.add_routes(
@@ -87,7 +93,8 @@ async def main() -> None:
     nodes_to_simulate = 10
     port_range = range(port_starting, port_starting + nodes_to_simulate)
     nodes = [IoTNode(node_id) for node_id in port_range]
-
+    
+    
     runners = [aioweb.AppRunner(node.create_aiohttp_app()) for node in nodes]
     for runner in runners:
         await runner.setup()

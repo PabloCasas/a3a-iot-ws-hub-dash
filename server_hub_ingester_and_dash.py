@@ -339,6 +339,7 @@ class HomeHubApp(object):
             ingester aggregation task, since it should run at all times.
         
         :param aiohttp_app: reference to the main aiohttp_app (unused)
+        Pablo Notes: The yeild word in here is more of a generator object than a typical function
         """
         self.task_ingester_agg = asyncio.create_task(self.the_ingester_agg.run_aggregator())
         yield
@@ -353,8 +354,11 @@ if __name__ == '__main__':
         but still runs on one process.
     """
     home_hub = HomeHubApp()
+    # home_hub1 = HomeHubApp()
     app = aioweb.Application()
+    # app1 = aioweb.Application()
     app.cleanup_ctx.append(home_hub.run_non_aiohttp_tasks)
+    # app1.cleanup_ctx.append(home_hub1.run_non_aiohttp_tasks)
     app.add_routes(
         [
             aioweb.get('/ingester/discover', home_hub.the_ingester_http.handle_discover_nodes),
@@ -364,4 +368,14 @@ if __name__ == '__main__':
             aioweb.get('/hub/dashboard', home_hub.the_dashboard_wss.handle_wss_data_stream)
         ]
     )
+    # app1.add_routes(
+    #     [
+    #         aioweb.get('/ingester/discover', home_hub1.the_ingester_http.handle_discover_nodes),
+    #         aioweb.get('/ingester/subscribed', home_hub1.the_ingester_http.handle_list_subscribed),
+    #         aioweb.get('/ingester/subscribe/{node_id}', home_hub1.the_ingester_http.handle_sub_node),
+    #         aioweb.get('/ingester/unsubscribe/{node_id}', home_hub1.the_ingester_http.handle_unsub_node),
+    #         aioweb.get('/hub/dashboard', home_hub1.the_dashboard_wss.handle_wss_data_stream)
+    #     ]
+    # )
     aioweb.run_app(app, port=8080)  # NOTE: change the port number if you have LabView or NI MAX installed.
+    # aioweb.run_app(app1, port=8081)  # NOTE: change the port number if you have LabView or NI MAX installed.
